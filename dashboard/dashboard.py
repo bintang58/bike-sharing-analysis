@@ -7,8 +7,8 @@ import streamlit as st
 sns.set(style="dark")
 
 # Membaca dataset dari file CSV day_df & hour_df
-day_df = pd.read_csv("day_clean.csv")
-hour_df = pd.read_csv("hour_clean.csv")
+day_df = pd.read_csv("dashboard/day_clean.csv")
+hour_df = pd.read_csv("dashboard/hour_clean.csv")
 
 # Menyiapkan function
 
@@ -62,7 +62,7 @@ max_date = day_df["date"].max()
 
 with st.sidebar:
     # Menambahkan logo perusahaan
-    st.image("logo.png")
+    st.image("dashboard/logo.png")
     # Mengambil start_date & end_date dari date_input
     start_date, end_date = st.date_input(
         label="Rentang Waktu",min_value=min_date,
