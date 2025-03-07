@@ -39,6 +39,7 @@ streamlit run dashboard/dashboard.py
 Atau Anda bisa langsung mengunjungi website berikut: [Bike Sharing Dashboard](https://bike-sharing-analysis-bintangcahyaa.streamlit.app/)
 
 ## 📂 Struktur File
+
 ```bash
 📂 bike-sharing-analysis
 ├── 📂 dashboard
@@ -52,5 +53,6 @@ Atau Anda bisa langsung mengunjungi website berikut: [Bike Sharing Dashboard](ht
 |   └── hour.csv
 ├── README.md
 ├── notebook.ipynb
-└── requirements.txt
+├── requirements.txt
+└── url.txt
 ```
