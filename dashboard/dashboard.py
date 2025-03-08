@@ -7,8 +7,8 @@ import streamlit as st
 sns.set(style="dark")
 
 # Membaca dataset dari file CSV day_df & hour_df
-day_df = pd.read_csv("dashboard/day_clean.csv")
-hour_df = pd.read_csv("dashboard/hour_clean.csv")
+day_df = pd.read_csv("day_clean.csv")
+hour_df = pd.read_csv("hour_clean.csv")
 
 # Menyiapkan function
 
@@ -31,6 +31,14 @@ def get_season_df(df):
 def get_sum_order_items_df(df):
     sum_order_items_df = df.groupby("hour")["count"].sum().sort_values(ascending=False).reset_index()
     return sum_order_items_df
+
+def get_spring_data_df(df):
+    spring_data_df = df[df["season"] == "Spring"]
+    return spring_data_df
+
+def get_hourly_rentals_workingday(df):
+    hourly_rentals_workingday = df.groupby(["hour", "workingday"])["count"].mean().unstack()
+    return hourly_rentals_workingday
 
 def get_rfm_df(df):
     rfm_df = df.groupby(by="day", as_index=False, observed=False).agg({
@@ -62,7 +70,7 @@ max_date = day_df["date"].max()
 
 with st.sidebar:
     # Menambahkan logo perusahaan
-    st.image("dashboard/logo.png")
+    st.image("logo.png")
     # Mengambil start_date & end_date dari date_input
     start_date, end_date = st.date_input(
         label="Rentang Waktu",min_value=min_date,
@@ -80,7 +88,9 @@ daily_casual_df = get_sum_daily_casual_df(main_df_day)
 daily_registered_df = get_sum_daily_registered_df(main_df_day)
 daily_rent_df = get_daily_rent_df(main_df_day)
 season_df = get_season_df(main_df_day)
+spring_df = get_spring_data_df(main_df_day)
 sum_order_items_df = get_sum_order_items_df(main_df_hour)
+hourly_rentals_workingday = get_hourly_rentals_workingday(main_df_hour)
 rfm_df = get_rfm_df(main_df_day)
 
 # Header Bike Sharing
@@ -99,8 +109,40 @@ with col2:
     st.metric("Registered User", value= daily_registered_user)
  
 with col3:
-    daily_rent_user = daily_rent_df['count'].sum()
+    daily_rent_user = daily_rent_df["count"].sum()
     st.metric("Total User", value= daily_rent_user)
+
+# Pertanyaan Analisis 3: Bagaimana strategi promosi yang dapat diterapkan pada musim dengan jumlah penyewaan sepeda yang rendah?
+col1, col2 = st.columns(2)
+# Kolom 1: Distribusi Temperature
+with col1:
+    st.subheader("Temperature Distribution in Spring")
+    fig, ax = plt.subplots(figsize=(7, 5))
+    sns.histplot(spring_df["temp"], bins=20, kde=True, ax=ax, color="blue")
+    ax.set_xlabel("Temperature (Normalized)")
+    st.pyplot(fig)
+
+# Kolom 2: Distribusi Windspeed
+with col2:
+    st.subheader("Wind Speed Distribution in Spring")
+    fig, ax = plt.subplots(figsize=(7, 5))
+    sns.histplot(spring_df["windspeed"], bins=20, kde=True, ax=ax, color="red")
+    ax.set_xlabel("Windspeed")
+    st.pyplot(fig)
+
+# Pertanyaan Analisis 4: Apakah perlu penyesuaian harga sewa berdasarkan pola peminjaman di jam-jam tertentu?
+st.subheader("Comparison of Bicycle Loan Patterns between Weekdays and Weekends")
+fig, ax = plt.subplots(figsize=(12, 6))  # Simpan figure dalam variabel
+
+sns.lineplot(x=hourly_rentals_workingday.index, y=hourly_rentals_workingday["Weekdays"], marker="o", label="Weekdays", color="b", ax=ax)
+sns.lineplot(x=hourly_rentals_workingday.index, y=hourly_rentals_workingday["Weekend"], marker="o", label="Weekend", color="r", ax=ax)
+
+ax.set_xticks(range(0, 24))
+ax.set_xlabel("Hours in a Day (AM-PM)")
+ax.set_ylabel("Average Number of Borrowings")
+ax.legend()
+
+st.pyplot(fig)  # Tampilkan plot di Streamlit
 
 # Pertanyaan Analisis 1: Pada musim apa jumlah penyewaan sepeda tertinggi?
 st.subheader("Number of Bike Rentals by Season")
@@ -111,7 +153,6 @@ colors = ["#D3D3D3", "#D3D3D3", "#D3D3D3", "#64B5F6"]
 
 # Membuat grafik bar untuk jumlah penyewaan per musim
 sns.barplot(y="count", x="season", data=season_df.sort_values(by="season", ascending=False), palette=colors, hue="season", legend=False, ax=ax)
-ax.set_title("Number of Bike Rentals by Season", loc="center", fontsize=15)
 ax.set_ylabel(None)
 ax.set_xlabel(None)
 ax.tick_params(axis="x", labelsize=12)
